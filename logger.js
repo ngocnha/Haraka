@@ -158,19 +158,14 @@ logger._init_timestamps = function () {
     var _timestamps = config.get('log_timestamps', 'value', function () {
         self._init_timestamps();
     });
-
-    if (_timestamps) {
-        console.log = function() {
-            var new_arguments = [new Date().toLocaleString(_timestamps)];
-            for (var key in arguments) {
-                new_arguments.push(arguments[key]);
-            }
-            original_console_log.apply(console, new_arguments);
-        };
-    }
-    else {
-        console.log = original_console_log;
-    }
+    _timestamps = _timestamps?_timestamps:'en-GB';
+    console.log = function() {
+        var new_arguments = [new Date().toLocaleString(_timestamps)];
+        for (var key in arguments) {
+            new_arguments.push(arguments[key]);
+        }
+        original_console_log.apply(console, new_arguments);
+    };
 };
 
 logger._init_loglevel();
