@@ -49,6 +49,12 @@ pluggableStream.prototype.attach = function (socket) {
         self.emit('data', data);
     });
     self.targetsocket.on('connect', function (a, b) {
+        if (self.targetsocket.remotePort) {
+            self.remotePort = self.targetsocket.remotePort;
+        }
+        if (self.targetsocket.remoteAddress) {
+            self.remoteAddress = self.targetsocket.remoteAddress;
+        }
         self.emit('connect', a, b);
     });
     self.targetsocket.on('secureConnection', function (a, b) {
