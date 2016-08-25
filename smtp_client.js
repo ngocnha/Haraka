@@ -134,7 +134,7 @@ function SMTPClient (port, host, connect_timeout, idle_timeout) {
 
     this.socket.on('connect', function () {
         // Remove connection timeout and set idle timeout
-        client.socket.setTimeout(((idle_timeout) ? idle_timeout : 300) * 1000);
+        //client.socket.setTimeout(((idle_timeout) ? idle_timeout : 300) * 1000);
         if (client.socket.remoteAddress) {
             // "Value may be undefined if the socket is destroyed"
             client.remote_ip = ipaddr.process(client.socket.remoteAddress).toString();
@@ -282,7 +282,7 @@ SMTPClient.prototype.is_dead_sender = function (plugin, connection) {
 };
 
 // Separate pools are kept for each set of server attributes.
-exports.get_pool = function (server, port, host, connect_timeout, pool_timeout, max) {
+exports.get_pool = function (server, port, host, connect_timeout, pool_timeout, max, min) {
     port = port || 25;
     host = host || 'localhost';
     connect_timeout = (connect_timeout === undefined) ? 30 : connect_timeout;
@@ -295,7 +295,7 @@ exports.get_pool = function (server, port, host, connect_timeout, pool_timeout, 
         var pool = generic_pool.Pool({
             name: name,
             create: function (callback) {
-                var smtp_client = new SMTPClient(port, host, connect_timeout);
+                var smtp_client = new SMTPClient(port, host, connect_timeout, pool_timeout);
                 logger.logdebug('[smtp_client_pool] uuid=' + smtp_client.uuid + ' host=' +
                     host + ' port=' + port + ' pool_timeout=' + pool_timeout + ' created');
                 callback(null, smtp_client);
@@ -310,6 +310,7 @@ exports.get_pool = function (server, port, host, connect_timeout, pool_timeout, 
                     delete server.notes.pool[name];
                 }
             },
+            min: min || 1 
             max: max || 1000,
             idleTimeoutMillis: pool_timeout * 1000,
             log: function (str, level) {
@@ -356,7 +357,7 @@ exports.get_client_plugin = function (plugin, connection, c, callback) {
     var hostport = get_hostport(connection, connection.server.notes, c);
 
     var pool = exports.get_pool(connection.server, hostport.port, hostport.host,
-                                c.connect_timeout, c.timeout, c.max_connections);
+                                c.connect_timeout, c.timeout, c.max_connections, c.min_connections);
 
     pool.acquire(function (err, smtp_client) {
         connection.logdebug(plugin, 'Got smtp_client: ' + smtp_client.uuid);
