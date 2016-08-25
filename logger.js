@@ -161,7 +161,7 @@ logger._init_timestamps = function () {
 
     if (_timestamps) {
         console.log = function() {
-            var new_arguments = [new Date().toISOString()];
+            var new_arguments = [new Date().toLocaleString(_timestamps)];
             for (var key in arguments) {
                 new_arguments.push(arguments[key]);
             }
